@@ -21,13 +21,20 @@
 #include "i2c.h"
 #include "usart.h"
 #include "gpio.h"
-#include <stdio.h>
-#include <string.h>
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-#define TMP100_ADDRESS  0x48 // TMP100 I2C address with ADD1 and ADD0 high
+// #define TMP100_ADD1_0_ADD0_0  (0x48) // ADD1 0, ADD0 0
+// #define TMP100_ADD1_0_ADD0_F  (0x49) // ADD1 0, ADD0 Float
+// #define TMP100_ADD1_0_ADD0_1  (0x4A) // ADD1 0, ADD0 1
+// #define TMP100_ADD1_1_ADD0_0  (0x4C) // ADD1 1, ADD0 0
+// #define TMP100_ADD1_1_ADD0_F  (0x4D) // ADD1 1, ADD0 Float
+// #define TMP100_ADD1_1_ADD0_1  (0x4E) // ADD1 1, ADD0 1
+// #define TMP100_ADD1_F_ADD0_0  (0x4B) // ADD1 1, ADD0 0
+// #define TMP100_ADD1_F_ADD0_1  (0x4F) // ADD1 1, ADD0 1
+#define TMP100_ADDRESS  0x48 // TMP100 I2C address with ADD1 and ADD0 low
 #define TMP100_TEMP_REG 0x00 // Temperature register address
+/* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
 /* USER CODE BEGIN PTD */
@@ -69,8 +76,9 @@ void SystemClock_Config(void);
   */
 int main(void)
 {
+
   /* USER CODE BEGIN 1 */
-   HAL_StatusTypeDef ret;
+  HAL_StatusTypeDef ret;
   uint8_t temp_buf[2]; // Buffer for temperature data from TMP100
   char uart_buf[20];   // Buffer for UART output
   int16_t temp_val;
@@ -78,12 +86,25 @@ int main(void)
   /* USER CODE END 1 */
 
   /* MCU Configuration--------------------------------------------------------*/
-  HAL_Init();
-  SystemClock_Config();
-  MX_GPIO_Init();
-  MX_I2C1_Init();
-  MX_USART1_UART_Init();
 
+  /* Reset of all peripherals, Initializes the Flash interface and the Systick. */
+  HAL_Init();
+
+  /* USER CODE BEGIN Init */
+
+  /* USER CODE END Init */
+
+  /* Configure the system clock */
+  SystemClock_Config();
+
+  /* USER CODE BEGIN SysInit */
+
+  /* USER CODE END SysInit */
+
+  /* Initialize all configured peripherals */
+  MX_GPIO_Init();
+  MX_USART1_UART_Init();
+  MX_I2C1_Init();
   /* USER CODE BEGIN 2 */
   /* USER CODE END 2 */
 
@@ -92,7 +113,8 @@ int main(void)
   while (1)
   {
     /* Request temperature data from TMP100 */
-    ret = HAL_I2C_Mem_Read(&hi2c1, (TMP100_ADDRESS << 1)| 0x01, TMP100_TEMP_REG, I2C_MEMADD_SIZE_8BIT, &temp_buf, 2, HAL_MAX_DELAY);
+    ret = HAL_I2C_Mem_Read(&hi2c1, (TMP100_ADDRESS << 1)|0x01, TMP100_TEMP_REG, I2C_MEMADD_SIZE_8BIT, &temp_buf, 2, HAL_MAX_DELAY);
+
 
     if (ret != HAL_OK) {
         strcpy(uart_buf, "Error Rx\r\n");
@@ -115,6 +137,8 @@ int main(void)
     HAL_Delay(1000); // 1-second delay between readings
   }
     /* USER CODE END WHILE */
+
+    /* USER CODE BEGIN 3 */
   
   /* USER CODE END 3 */
 }
@@ -128,6 +152,9 @@ void SystemClock_Config(void)
   RCC_OscInitTypeDef RCC_OscInitStruct = {0};
   RCC_ClkInitTypeDef RCC_ClkInitStruct = {0};
 
+  /** Initializes the RCC Oscillators according to the specified parameters
+  * in the RCC_OscInitTypeDef structure.
+  */
   RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_HSE;
   RCC_OscInitStruct.HSEState = RCC_HSE_ON;
   RCC_OscInitStruct.PLL.PLLState = RCC_PLL_NONE;
@@ -136,6 +163,8 @@ void SystemClock_Config(void)
     Error_Handler();
   }
 
+  /** Initializes the CPU, AHB and APB buses clocks
+  */
   RCC_ClkInitStruct.ClockType = RCC_CLOCKTYPE_HCLK|RCC_CLOCKTYPE_SYSCLK
                               |RCC_CLOCKTYPE_PCLK1|RCC_CLOCKTYPE_PCLK2;
   RCC_ClkInitStruct.SYSCLKSource = RCC_SYSCLKSOURCE_HSE;
@@ -159,14 +188,28 @@ void SystemClock_Config(void)
   */
 void Error_Handler(void)
 {
+  /* USER CODE BEGIN Error_Handler_Debug */
+  /* User can add his own implementation to report the HAL error return state */
   __disable_irq();
   while (1)
   {
   }
+  /* USER CODE END Error_Handler_Debug */
 }
 
 #ifdef  USE_FULL_ASSERT
+/**
+  * @brief  Reports the name of the source file and the source line number
+  *         where the assert_param error has occurred.
+  * @param  file: pointer to the source file name
+  * @param  line: assert_param error line source number
+  * @retval None
+  */
 void assert_failed(uint8_t *file, uint32_t line)
 {
+  /* USER CODE BEGIN 6 */
+  /* User can add his own implementation to report the file name and line number,
+     ex: printf("Wrong parameters value: file %s on line %d\r\n", file, line) */
+  /* USER CODE END 6 */
 }
 #endif /* USE_FULL_ASSERT */
